@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goat Dist. Analytics</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary: #2E7D32;
+            --primary-light: #4CAF50;
+            --secondary: #1976D2;
+            /* Darker blue for better contrast */
+            --secondary-light: #2196F3;
+            --accent: #FFC107;
+            --text-dark: #1E293B;
+            --text-light: #64748B;
+            --bg-body: #F0F2F5;
+            --card-bg: #FFFFFF;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        /* Navbar */
+        nav {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            padding: 1rem 2rem;
+            color: white;
+            box-shadow: 0 4px 20px rgba(46, 125, 50, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        nav .date {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+
+        /* Main Layout */
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 20px;
+        }
+
+        /* Summary Cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .stat-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .icon-green {
+            background: #E8F5E9;
+            color: var(--primary);
+        }
+
+        .icon-blue {
+            background: #E3F2FD;
+            color: var(--secondary);
+        }
+
+        .icon-purple {
+            background: #F3E5F5;
+            color: #9C27B0;
+        }
+
+        .icon-orange {
+            background: #FFF3E0;
+            color: #EF6C00;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Charts Section */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .chart-container {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            height: 400px;
+            position: relative;
+        }
+
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .col-span-4 {
+            grid-column: span 4;
+        }
+
+        .col-span-6 {
+            grid-column: span 6;
+        }
+
+        .col-span-8 {
+            grid-column: span 8;
+        }
+
+        .col-span-12 {
+            grid-column: span 12;
+        }
+
+        @media (max-width: 1024px) {
+
+            .col-span-4,
+            .col-span-6,
+            .col-span-8 {
+                grid-column: span 12;
+            }
+        }
+
+        /* Tables & Insights */
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.5rem;
+        }
+
+        .data-table-container {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+            background: #FAFAFA;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        th {
+            font-weight: 600;
+            color: var(--text-light);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover {
+            background-color: #F8F9FA;
+        }
+
+        .insights-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .insight-card {
+            background: var(--card-bg);
+            padding: 1.2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--primary);
+        }
+
+        .insight-card h4 {
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .insight-card p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 3rem 0;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-top: 2rem;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #aaa;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="animate-fade-in">
+        <div class="logo">
+            <i class="fa-solid fa-chart-pie"></i>
+            GD Analytics
+        </div>
+        <div class="date">
+            <i class="far fa-calendar-alt"></i> Report Date: 2026-02-17
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <!-- Executive Summary -->
+        <div class="animate-fade-in" style="margin-bottom: 2rem;">
+            <h2 style="font-weight: 700; color: var(--text-dark); margin-bottom: 0.5rem;">Executive Overview</h2>
+            <p style="color: var(--text-light); max-width: 800px;">
+                Comprehensive analysis of the Goat Distribution Initiative. A total of 374 beneficiaries across 25
+                villages were supported,
+                with a focus on empowering marginalized communities and women.
+            </p>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="summary-grid animate-fade-in" style="animation-delay: 0.1s;">
+            <div class="card">
+                <div class="stat-card-header">
+                    <div class="stat-icon icon-green"><i class="fa-solid fa-users"></i></div>
+                </div>
+                <div class="stat-value" data-target="374">0</div>
+                <div class="stat-label">Total Beneficiaries</div>
+            </div>
+            <div class="card">
+                <div class="stat-card-header">
+                    <div class="stat-icon icon-blue"><i class="fa-solid fa-paw"></i></div>
+                </div>
+                <div class="stat-value" data-target="374">0</div>
+                <div class="stat-label">Total Goats Distributed</div>
+            </div>
+            <div class="card">
+                <div class="stat-card-header">
+                    <div class="stat-icon icon-purple"><i class="fa-solid fa-map-location-dot"></i></div>
+                </div>
+                <div class="stat-value" data-target="25">0</div>
+                <div class="stat-label">Villages Covered</div>
+            </div>
+            <div class="card">
+                <div class="stat-card-header">
+                    <div class="stat-icon icon-orange"><i class="fa-solid fa-venus-mars"></i></div>
+                </div>
+                <div class="stat-value">61%</div>
+                <div class="stat-label">Female Beneficiaries</div>
+            </div>
+        </div>
+
+        <!-- Charts Row 1 -->
+        <div class="charts-grid animate-fade-in" style="animation-delay: 0.2s;">
+            <div class="chart-container col-span-4">
+                <div class="chart-title"><i class="fa-solid fa-layer-group" style="color: var(--secondary);"></i> Caste
+                    Distribution</div>
+                <canvas id="casteChart"></canvas>
+            </div>
+            <div class="chart-container col-span-4">
+                <div class="chart-title"><i class="fa-solid fa-hands-holding-circle" style="color: var(--primary);"></i>
+                    Beneficiary Type (SMF/SEF)</div>
+                <canvas id="typeChart"></canvas>
+            </div>
+            <div class="chart-container col-span-4">
+                <div class="chart-title"><i class="fa-solid fa-venus" style="color: #E91E63;"></i> Gender Ratio</div>
+                <canvas id="genderChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Charts Row 2 -->
+        <div class="charts-grid animate-fade-in" style="animation-delay: 0.3s;">
+            <div class="chart-container col-span-12">
+                <div class="chart-title"><i class="fa-solid fa-tree-city" style="color: var(--accent);"></i> Top 10
+                    Villages by Distribution</div>
+                <canvas id="villageChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Tables & Insights -->
+        <div class="content-grid animate-fade-in" style="animation-delay: 0.4s;">
+            <!-- Top Villages Table -->
+            <div class="data-table-container col-span-8">
+                <div class="table-header">
+                    <h3 style="font-size: 1.1rem;">Detailed Village Statistics (Top 5)</h3>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Village Name</th>
+                            <th>Beneficiaries</th>
+                            <th>Goats Distributed</th>
+                            <th>% of Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td style="font-weight: 500;">Ramgarh</td>
+                            <td>57</td>
+                            <td>57</td>
+                            <td><span
+                                    style="padding: 4px 8px; background: #E8F5E9; color: green; border-radius: 10px; font-size: 0.8rem;">15.2%</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td style="font-weight: 500;">Kelu</td>
+                            <td>29</td>
+                            <td>29</td>
+                            <td><span
+                                    style="padding: 4px 8px; background: #E8F5E9; color: green; border-radius: 10px; font-size: 0.8rem;">7.7%</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td style="font-weight: 500;">Dedpura</td>
+                            <td>29</td>
+                            <td>29</td>
+                            <td><span
+                                    style="padding: 4px 8px; background: #E8F5E9; color: green; border-radius: 10px; font-size: 0.8rem;">7.7%</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td style="font-weight: 500;">Shivpuri</td>
+                            <td>27</td>
+                            <td>27</td>
+                            <td><span
+                                    style="padding: 4px 8px; background: #E8F5E9; color: green; border-radius: 10px; font-size: 0.8rem;">7.2%</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td style="font-weight: 500;">Kharwa</td>
+                            <td>23</td>
+                            <td>23</td>
+                            <td><span
+                                    style="padding: 4px 8px; background: #E8F5E9; color: green; border-radius: 10px; font-size: 0.8rem;">6.1%</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Insights Column -->
+            <div class="col-span-4 insights-container">
+                <div class="insight-card">
+                    <h4><i class="fa-solid fa-bullseye" style="color: #E53935;"></i> Key Insight</h4>
+                    <p><strong>OBC</strong> & <strong>ST</strong> categories combined account for <strong>81%</strong>
+                        of all beneficiaries, showing strong alignment with social inclusion goals.</p>
+                </div>
+                <div class="insight-card">
+                    <h4><i class="fa-solid fa-location-dot" style="color: var(--secondary);"></i> Geographical Focus
+                    </h4>
+                    <p><strong>Ramgarh</strong> is a critical distribution hub, receiving more than double the goats
+                        compared to most other villages.</p>
+                </div>
+                <div class="insight-card">
+                    <h4><i class="fa-solid fa-scale-balanced" style="color: var(--primary);"></i> Equity</h4>
+                    <p>Distribution is fairly balanced between Small/Marginal Farmers (54%) and Socially Economically
+                        Fragile (46%) groups.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Government Goat Distribution Initiative. Confidential Data Report.</p>
+    </footer>
+
+    <script>
+        // --- Counter Animation ---
+        const counters = document.querySelectorAll('.stat-value');
+        counters.forEach(counter => {
+            const target = +counter.getAttribute('data-target');
+            if (!target) return;
+            const duration = 1500; // ms
+            const increment = target / (duration / 16);
+
+            let current = 0;
+            const updateCounter = () => {
+                current += increment;
+                if (current < target) {
+                    counter.innerText = Math.ceil(current);
+                    requestAnimationFrame(updateCounter);
+                } else {
+                    counter.innerText = target;
+                }
+            };
+            updateCounter();
+        });
+
+        // --- Chart Configuration Definitions ---
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#64748B';
+
+        // 1. Caste Chart (Pie)
+        const ctxCaste = document.getElementById('casteChart').getContext('2d');
+        new Chart(ctxCaste, {
+            type: 'pie',
+            data: {
+                labels: ['OBC', 'ST', 'SC', 'GEN'],
+                datasets: [{
+                    data: [196, 109, 58, 11],
+                    backgroundColor: ['#2196F3', '#4CAF50', '#FFC107', '#9E9E9E'],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } }
+                }
+            }
+        });
+
+        // 2. Beneficiary Type Chart (Doughnut)
+        const ctxType = document.getElementById('typeChart').getContext('2d');
+        new Chart(ctxType, {
+            type: 'doughnut',
+            data: {
+                labels: ['SMF (Small Farmers)', 'SEF (Socially Fragile)'],
+                datasets: [{
+                    data: [203, 171],
+                    backgroundColor: ['#66BB6A', '#FFA726'],
+                    borderWidth: 0,
+                    cutout: '70%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } }
+                }
+            }
+        });
+
+        // 3. Gender Chart (Polar)
+        const ctxGender = document.getElementById('genderChart').getContext('2d');
+        new Chart(ctxGender, {
+            type: 'polarArea',
+            data: {
+                labels: ['Female', 'Male'],
+                datasets: [{
+                    data: [229, 145],
+                    backgroundColor: ['rgba(233, 30, 99, 0.7)', 'rgba(33, 150, 243, 0.7)'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: { ticks: { display: false } }
+                },
+                plugins: {
+                    legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } }
+                }
+            }
+        });
+
+        // 4. Village Chart (Bar) - Top 10
+        const ctxVillage = document.getElementById('villageChart').getContext('2d');
+        new Chart(ctxVillage, {
+            type: 'bar',
+            data: {
+                labels: ['Ramgarh', 'Kelu', 'Dedpura', 'Shivpuri', 'Kharwa', 'Surajpura II', 'Shivnagar', 'Devas', 'Pithavas', 'Kanpura'],
+                datasets: [{
+                    label: 'Goats Distributed',
+                    data: [57, 29, 29, 27, 23, 23, 20, 18, 18, 16],
+                    backgroundColor: '#2E7D32',
+                    borderRadius: 6,
+                    barPercentage: 0.6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { borderDash: [2, 2], drawBorder: false }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
